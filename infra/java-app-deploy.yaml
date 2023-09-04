@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-java-app-with-vault
+  labels:
+    app: my-java-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-java-app
+  template:
+    metadata:
+      labels:
+        app: my-java-app
+    spec:
+      volumes:
+        - name: shared-secrets
+          emptyDir: {}
+      containers:
+      - name: my-java-app
+        image: my-java-app:latest
+        volumeMounts:
+          - name: shared-secrets
+            mountPath: /etc/secrets
+      - name: vault-agent
+        image: vault:1.8.0  # Use the appropriate Vault version
+        env:
+          - name: VAULT_ADDR
+            value: "http://vault.server:8200"
+          - name: AGENT_INJECT
+            value: "true"
+          - name: SKIP_SETCAP
+            value: "true"  # Use only if you want to avoid running as root
+        volumeMounts:
+          - name: shared-secrets
+            mountPath: /etc/secrets
+        args: ["agent", "-config=/vault/config/agent-config.hcl"]
+        securityContext:
+          runAsUser: 100  # Run as non-root user
+      initContainers:
+      - name: vault-agent-init
+        image: vault:1.8.0  # Use the appropriate Vault version
+        env:
+          - name: VAULT_ADDR
+            value: "http://vault.server:8200"
+        args: ["agent", "-config=/vault/config/agent-config-init.hcl"]
+        securityContext:
+          runAsUser: 100  # Run as non-root user
