@@ -1,5 +1,5 @@
 # CronJob Definition
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: my-cronjob
@@ -16,6 +16,9 @@ spec:
                 - /bin/sh
                 - -c
                 - date; echo "Hello, world!"
+              securityContext:
+                runAsNonRoot: true
+                allowPrivilegeEscalation: false
           restartPolicy: OnFailure
 
 

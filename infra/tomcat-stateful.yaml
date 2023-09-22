@@ -36,6 +36,9 @@ spec:
               mountPath: /usr/local/tomcat/logs
             - name: shared-secrets
               mountPath: /etc/secrets
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
         - name: vault-agent
           image: 'vault:1.8.0'
           env:
@@ -47,6 +50,11 @@ spec:
           volumeMounts:
             - name: shared-secrets
               mountPath: /etc/secrets
+          command:
+            - vault
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
       initContainers:
         - name: vault-agent-init
           image: 'vault:1.8.0'
@@ -56,6 +64,11 @@ spec:
           args:
             - agent
             - '-config=/vault/config/agent-config-init.hcl'
+          command:
+            - vault
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
   volumeClaimTemplates:
     - metadata:
         name: tomcat-data
